@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTF-16 Character List</title>
+<style>
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --surface3: #2e2e2e;
+  --border: #333;
+  --text: #e0e0e0;
+  --text2: #999;
+  --accent: #ffb74d;
+  --accent-dim: rgba(255,183,77,0.1);
+  --hover: #2a2a2a;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 360px;
+  min-width: 360px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  transition: width 0.2s, min-width 0.2s;
+}
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.enc-nav {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+.enc-nav-current {
+  color: var(--accent);
+  font-weight: 600;
+  padding: 3px 10px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+}
+.enc-nav-link {
+  color: var(--text2);
+  text-decoration: none;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.enc-nav-link:hover {
+  color: var(--text);
+  border-color: var(--text2);
+  background: var(--surface2);
+}
+.sidebar-search {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.sidebar-search:focus { border-color: var(--accent); }
+.sidebar-search::placeholder { color: var(--text2); }
+.category-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+.category-list::-webkit-scrollbar { width: 6px; }
+.category-list::-webkit-scrollbar-track { background: transparent; }
+.category-list::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+.cat-item {
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+}
+.cat-item:hover { background: var(--hover); }
+.cat-item.active {
+  background: var(--accent-dim);
+  border: 1px solid rgba(79,195,247,0.3);
+}
+.cat-item .cat-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+}
+.cat-item .cat-desc {
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 2px;
+}
+.cat-item .cat-range {
+  font-size: 10px;
+  color: var(--accent);
+  font-family: 'Consolas', 'Courier New', monospace;
+  margin-top: 2px;
+}
+.cat-item.hidden { display: none; }
+
+/* Sidebar toggle */
+.sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  right: -17px;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 48px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 0 8px 8px 0;
+  color: var(--text2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  z-index: 10;
+  transition: color 0.2s, background 0.2s;
+  padding: 0;
+}
+.sidebar-toggle:hover { color: var(--accent); background: var(--surface3); }
+.sidebar.collapsed { width: 0; min-width: 0; overflow: visible; border-right: none; }
+.sidebar.collapsed .sidebar-header,
+.sidebar.collapsed .category-list { visibility: hidden; width: 0; height: 0; overflow: hidden; }
+.sidebar.collapsed .sidebar-toggle { right: -17px; }
+
+/* Main */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.main-header {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.main-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 200px;
+}
+.main-header h2 small {
+  font-size: 13px;
+  color: var(--text2);
+  font-weight: 400;
+  margin-left: 8px;
+}
+.char-search {
+  padding: 8px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  width: 300px;
+  transition: border-color 0.2s;
+}
+.char-search:focus { border-color: var(--accent); }
+.char-search::placeholder { color: var(--text2); }
+.view-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--surface2);
+  padding: 3px;
+  border-radius: 8px;
+}
+.view-btn {
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.view-btn.active {
+  background: var(--accent);
+  color: #000;
+  font-weight: 600;
+}
+.stats {
+  font-size: 12px;
+  color: var(--text2);
+  padding: 12px 28px 0;
+}
+
+/* Grid */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 28px 28px;
+}
+.content::-webkit-scrollbar { width: 8px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+
+.char-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+.char-cell {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.char-cell:hover {
+  border-color: var(--accent);
+  background: var(--surface2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.char-display {
+  font-size: 32px;
+  line-height: 1.4;
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.char-display.control {
+  font-size: 10px;
+  color: var(--text2);
+  font-family: monospace;
+}
+.char-code {
+  font-size: 10px;
+  color: var(--accent);
+  font-family: 'Consolas', monospace;
+  margin-top: 4px;
+}
+
+/* Table */
+.char-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.char-table th {
+  text-align: left;
+  padding: 10px 14px;
+  background: var(--surface2);
+  color: var(--text2);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.char-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.char-table tr:hover td { background: var(--hover); }
+.char-table .td-char { font-size: 24px; text-align: center; width: 60px; }
+.char-table .td-code { font-family: 'Consolas', monospace; color: var(--accent); font-size: 13px; }
+.char-table .td-hex { font-family: 'Consolas', monospace; color: var(--text2); font-size: 13px; }
+.char-table .td-dec { font-family: 'Consolas', monospace; color: var(--text2); font-size: 13px; width: 70px; }
+.char-table .td-desc { color: var(--text); font-size: 13px; }
+
+/* Detail popup */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.overlay.show { display: flex; }
+.detail-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  width: 400px;
+  max-width: 90vw;
+  text-align: center;
+  position: relative;
+}
+.detail-card .close-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 20px;
+  cursor: pointer;
+}
+.detail-char { font-size: 72px; line-height: 1.3; margin-bottom: 16px; }
+.detail-info { text-align: left; margin-top: 16px; }
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.detail-row .label { color: var(--text2); }
+.detail-row .value {
+  font-family: 'Consolas', monospace;
+  color: var(--accent);
+  user-select: all;
+}
+.copy-btn {
+  margin-top: 20px;
+  padding: 10px 28px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.copy-btn:hover { opacity: 0.85; }
+.copy-btn.copied { background: #4caf50; }
+
+/* Loading screen */
+#loadingScreen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+#loadingScreen .spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loadingScreen .load-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+#loadingScreen .load-status {
+  font-size: 14px;
+  color: var(--text2);
+}
+#loadingScreen .progress-bar {
+  width: 300px;
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+#loadingScreen .progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+/* Page jump input */
+.page-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  font-size: 13px;
+  color: var(--text2);
+}
+.page-jump input {
+  width: 56px;
+  padding: 5px 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  text-align: center;
+  outline: none;
+}
+.page-jump input:focus { border-color: var(--accent); }
+.page-jump button {
+  padding: 5px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 12px;
+}
+.page-jump button:hover { border-color: var(--accent); }
+
+/* Welcome */
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text2);
+  text-align: center;
+  padding: 40px;
+}
+.welcome h3 { font-size: 24px; margin-bottom: 12px; color: var(--text); }
+.welcome p { font-size: 14px; line-height: 1.6; }
+.global-search-box {
+  margin-top: 28px;
+  width: 100%;
+  max-width: 500px;
+}
+.global-search {
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.global-search:focus { border-color: var(--accent); }
+.global-search::placeholder { color: var(--text2); }
+.global-hint { font-size: 11px; color: var(--text2); margin-top: 6px; }
+.search-go-btn {
+  padding: 10px 24px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.search-go-btn:hover { opacity: 0.85; }
+
+/* Global search results category header */
+.result-cat-header {
+  padding: 10px 14px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  background: var(--surface2);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+.result-cat-header:hover { background: var(--surface3); }
+.result-cat-header span { color: var(--text2); font-weight: 400; margin-left: 8px; }
+
+/* Search all toggle */
+.search-all-btn {
+  padding: 8px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.search-all-btn:hover { border-color: var(--accent); }
+.search-all-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 0;
+  flex-wrap: wrap;
+}
+.page-btn {
+  padding: 6px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.page-btn:hover { border-color: var(--accent); }
+.page-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+.page-btn:disabled { opacity: 0.4; cursor: default; }
+.page-info { color: var(--text2); font-size: 13px; margin: 0 8px; }
+
+@media (max-width: 900px) {
+  .sidebar { width: 280px; min-width: 280px; }
+  .char-search { width: 200px; }
+}
+@media (max-width: 700px) {
+  body { flex-direction: column; }
+  .sidebar { width: 100%; min-width: 100%; height: auto; max-height: 40vh; }
+  .main { height: 60vh; }
+  .char-search { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <div class="load-title">UTF-16 Character Explorer</div>
+  <div class="load-status" id="loadStatus">Loading character data...</div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<div class="sidebar" style="display:none" id="appSidebar">
+  <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">◀</button>
+  <div class="sidebar-header">
+    <h1>UTF-16 Character List</h1>
+    <div class="enc-nav"><a class="enc-nav-link" href="index.html">UTF-8</a> | <a class="enc-nav-link" href="index_ucs2.html">UCS-2</a> | <span class="enc-nav-current">UTF-16</span></div>
+    <input type="text" class="sidebar-search" id="catSearch" placeholder="Search categories...">
+  </div>
+  <div class="category-list" id="catList"></div>
+</div>
+
+<div class="main" style="display:none" id="appMain">
+  <div class="main-header" id="mainHeader" style="display:none">
+    <h2 id="catTitle"></h2>
+    <input type="text" class="char-search" id="charSearch" placeholder="Search in this category...">
+    <button class="search-go-btn" id="charSearchBtn" style="padding:8px 16px;font-size:13px;border-radius:8px">Search</button>
+    <button class="search-all-btn" id="searchAllBtn" title="Search across all categories">All</button>
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="grid">Grid</button>
+      <button class="view-btn" data-view="table">Table</button>
+    </div>
+  </div>
+  <div class="stats" id="stats" style="display:none"></div>
+  <div class="content" id="content">
+    <div class="welcome">
+      <h3>UTF-16 Character Explorer</h3>
+      <p>330 Unicode blocks, 177,584 characters<br>Select a category from the left to browse</p>
+      <div class="global-search-box">
+        <div style="display:flex;gap:8px">
+          <input type="text" class="global-search" id="globalSearch" placeholder="Search all characters across all categories...">
+          <button class="search-go-btn" id="globalSearchBtn">Search</button>
+        </div>
+        <div class="global-hint">Unicode, character, or description (min 1 char) - press Enter or click Search</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="detail-card">
+    <button class="close-btn" id="closeDetail">&times;</button>
+    <div class="detail-char" id="detailChar"></div>
+    <div class="detail-info">
+      <div class="detail-row"><span class="label">Description</span><span class="value" id="detailDesc"></span></div>
+      <div class="detail-row"><span class="label">Unicode</span><span class="value" id="detailUnicode"></span></div>
+      <div class="detail-row"><span class="label">Decimal</span><span class="value" id="detailDec"></span></div>
+      <div class="detail-row"><span class="label">UTF-16 Hex</span><span class="value" id="detailHex"></span></div>
+      <div class="detail-row"><span class="label">HTML Entity</span><span class="value" id="detailHtml"></span></div>
+      <div class="detail-row"><span class="label">CSS</span><span class="value" id="detailCss"></span></div>
+    </div>
+    <button class="copy-btn" id="copyBtn">Copy Character</button>
+  </div>
+</div>
+
+<script src="chardata_utf16.js"></script>
+<script>
+const PAGE_SIZE = 500;
+const GLOBAL_SEARCH_LIMIT = 1000;
+let currentData = [];
+let filteredData = [];
+let currentPage = 0;
+let currentView = 'grid';
+let isGlobalSearch = false;
+
+function setProgress(pct, msg) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('loadStatus').textContent = msg;
+}
+
+async function init() {
+  setProgress(50, 'Building category list...');
+  await tick();
+
+  // Build sidebar in batches
+  const catList = document.getElementById('catList');
+  const batchSize = 50;
+  for (let b = 0; b < CATEGORIES.length; b += batchSize) {
+    const end = Math.min(b + batchSize, CATEGORIES.length);
+    for (let i = b; i < end; i++) {
+      const cat = CATEGORIES[i];
+      const div = document.createElement('div');
+      div.className = 'cat-item';
+      const cnt = (CHAR_DATA[i] || []).length;
+      const pages = Math.ceil(cnt / PAGE_SIZE);
+      const pageInfo = pages > 1 ? ` | ${pages} pages` : '';
+      div.innerHTML = `<div class="cat-name"><span style="color:var(--accent);margin-right:6px">${i+1}.</span>${esc(cat.name)}</div><div class="cat-desc">${esc(cat.desc)}</div><div class="cat-range">${esc(cat.range)} | ${cnt.toLocaleString()} chars${pageInfo}</div>`;
+      div.addEventListener('click', () => loadCategory(i));
+      div.dataset.idx = i;
+      catList.appendChild(div);
+    }
+    const pct = 50 + Math.round((end / CATEGORIES.length) * 45);
+    setProgress(pct, `Building categories... ${end} / ${CATEGORIES.length}`);
+    await tick();
+  }
+
+  setProgress(95, 'Finishing up...');
+  await tick();
+
+  // Show app, hide loading
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('appSidebar').style.display = '';
+  document.getElementById('appMain').style.display = '';
+
+  setProgress(100, 'Done');
+  setupEvents(catList);
+}
+
+function tick() { return new Promise(r => setTimeout(r, 0)); }
+
+function setupEvents(catList) {
+
+  // Sidebar toggle
+  document.getElementById('sidebarToggle').addEventListener('click', function() {
+    const sidebar = document.getElementById('appSidebar');
+    sidebar.classList.toggle('collapsed');
+    this.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+    if (!sidebar.classList.contains('collapsed')) {
+      const active = document.querySelector('.cat-item.active');
+      if (active) {
+        setTimeout(() => active.scrollIntoView({block:'center'}), 220);
+      }
+    }
+  });
+
+  // Category search
+  document.getElementById('catSearch').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    catList.querySelectorAll('.cat-item').forEach(el => {
+      const cat = CATEGORIES[el.dataset.idx];
+      const match = !q || cat.name.toLowerCase().includes(q) || cat.desc.includes(q) || cat.range.toLowerCase().includes(q);
+      el.classList.toggle('hidden', !match);
+    });
+  });
+
+  // View toggle
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      currentView = this.dataset.view;
+      renderData();
+    });
+  });
+
+  // Char search (single category or global) - triggered by button or Enter
+  function execCharSearch() {
+    const q = document.getElementById('charSearch').value;
+    if (isGlobalSearch) {
+      doGlobalSearch(q);
+    } else {
+      const ql = q.toLowerCase();
+      if (!ql) {
+        filteredData = currentData;
+      } else {
+        filteredData = currentData.filter(d => matchChar(d, ql));
+      }
+      currentPage = 0;
+      renderData();
+    }
+  }
+  document.getElementById('charSearchBtn').addEventListener('click', execCharSearch);
+  document.getElementById('charSearch').addEventListener('keydown', e => { if (e.key === 'Enter') execCharSearch(); });
+
+  // Global search on welcome page - triggered by button or Enter
+  function execGlobalSearch() { doGlobalSearch(document.getElementById('globalSearch').value); }
+  document.getElementById('globalSearchBtn').addEventListener('click', execGlobalSearch);
+  document.getElementById('globalSearch').addEventListener('keydown', e => { if (e.key === 'Enter') execGlobalSearch(); });
+
+  // "All" toggle button in header
+  document.getElementById('searchAllBtn').addEventListener('click', function() {
+    isGlobalSearch = !isGlobalSearch;
+    this.classList.toggle('active', isGlobalSearch);
+    const cs = document.getElementById('charSearch');
+    cs.placeholder = isGlobalSearch ? 'Search ALL categories...' : 'Search in this category...';
+    if (cs.value) cs.dispatchEvent(new Event('input'));
+  });
+
+  // Detail popup close
+  document.getElementById('closeDetail').addEventListener('click', () => document.getElementById('overlay').classList.remove('show'));
+  document.getElementById('overlay').addEventListener('click', e => { if (e.target === e.currentTarget) document.getElementById('overlay').classList.remove('show'); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('overlay').classList.remove('show'); });
+}
+
+init();
+
+function loadCategory(idx) {
+  const cat = CATEGORIES[idx];
+  catList.querySelectorAll('.cat-item').forEach(el => el.classList.toggle('active', +el.dataset.idx === idx));
+
+  document.getElementById('mainHeader').style.display = '';
+  document.getElementById('catTitle').innerHTML = `<span style="color:var(--accent)">${idx+1}.</span> ${esc(cat.name)}<small>${esc(cat.desc)}</small>`;
+  document.getElementById('charSearch').value = '';
+  document.getElementById('stats').style.display = '';
+
+  const raw = CHAR_DATA[idx] || [];
+  currentData = raw.map(r => {
+    const unicode = r[0], hex = r[1], ch = r[2], desc = r[3] || '';
+    return { dec: String(parseInt(unicode.slice(2), 16)), unicode, hex, char: ch, desc };
+  });
+  filteredData = currentData;
+  currentPage = 0;
+  renderData();
+}
+
+function renderData() {
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+  const start = currentPage * PAGE_SIZE;
+  const end = Math.min(start + PAGE_SIZE, filteredData.length);
+  const pageData = filteredData.slice(start, end);
+
+  document.getElementById('stats').textContent =
+    `${filteredData.length.toLocaleString()} characters` +
+    (filteredData.length !== currentData.length ? ` (filtered from ${currentData.length.toLocaleString()})` : '') +
+    (totalPages > 1 ? ` | Page ${currentPage + 1} of ${totalPages}` : '');
+
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  if (totalPages > 1) content.appendChild(buildPagination(totalPages, content));
+  if (currentView === 'grid') renderGrid(content, pageData);
+  else renderTable(content, pageData);
+  if (totalPages > 1) content.appendChild(buildPagination(totalPages, content));
+}
+
+function buildPagination(totalPages, content) {
+  const pag = document.createElement('div');
+  pag.className = 'pagination';
+  pag.appendChild(makePageBtn('\u25C0 Prev', currentPage > 0, () => { currentPage--; renderData(); content.scrollTop = 0; }));
+  getPageNums(currentPage, totalPages).forEach(p => {
+    if (p === '...') {
+      const s = document.createElement('span');
+      s.className = 'page-info'; s.textContent = '...';
+      pag.appendChild(s);
+    } else {
+      const b = makePageBtn(p + 1, true, () => { currentPage = p; renderData(); content.scrollTop = 0; });
+      if (p === currentPage) b.classList.add('active');
+      pag.appendChild(b);
+    }
+  });
+  pag.appendChild(makePageBtn('Next \u25B6', currentPage < totalPages - 1, () => { currentPage++; renderData(); content.scrollTop = 0; }));
+
+  const jump = document.createElement('div');
+  jump.className = 'page-jump';
+  jump.innerHTML = `<span>Go to</span>`;
+  const inp = document.createElement('input');
+  inp.type = 'number'; inp.min = 1; inp.max = totalPages;
+  inp.placeholder = '#';
+  const goBtn = document.createElement('button');
+  goBtn.textContent = 'Go';
+  const doJump = () => {
+    const v = parseInt(inp.value);
+    if (v >= 1 && v <= totalPages) { currentPage = v - 1; renderData(); content.scrollTop = 0; }
+  };
+  goBtn.addEventListener('click', doJump);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') doJump(); });
+  jump.appendChild(inp);
+  jump.appendChild(goBtn);
+  pag.appendChild(jump);
+  return pag;
+}
+
+function makePageBtn(text, enabled, fn) {
+  const b = document.createElement('button');
+  b.className = 'page-btn'; b.textContent = text; b.disabled = !enabled;
+  if (enabled) b.addEventListener('click', fn);
+  return b;
+}
+
+function getPageNums(cur, total) {
+  if (total <= 9) return Array.from({length: total}, (_, i) => i);
+  const p = [0];
+  if (cur > 3) p.push('...');
+  for (let i = Math.max(1, cur - 2); i <= Math.min(total - 2, cur + 2); i++) p.push(i);
+  if (cur < total - 4) p.push('...');
+  p.push(total - 1);
+  return p;
+}
+
+function isCtrl(d) {
+  const n = parseInt(d.dec);
+  return (n <= 31) || (n >= 127 && n <= 159) || d.desc.toLowerCase().startsWith('control character');
+}
+
+function renderGrid(container, data) {
+  const g = document.createElement('div');
+  g.className = 'char-grid';
+  data.forEach(d => {
+    const c = document.createElement('div');
+    c.className = 'char-cell';
+    const ctrl = isCtrl(d);
+    c.innerHTML = `<div class="char-display${ctrl ? ' control' : ''}">${ctrl ? esc(d.desc || d.unicode) : esc(d.char || '\u00A0')}</div><div class="char-code">${esc(d.unicode)}</div>`;
+    c.addEventListener('click', () => showDetail(d));
+    g.appendChild(c);
+  });
+  container.appendChild(g);
+}
+
+function renderTable(container, data) {
+  const t = document.createElement('table');
+  t.className = 'char-table';
+  t.innerHTML = '<thead><tr><th>Char</th><th>Unicode</th><th>Dec</th><th>UTF-16 Hex</th><th>Description</th></tr></thead>';
+  const tb = document.createElement('tbody');
+  data.forEach(d => {
+    const tr = document.createElement('tr');
+    const ctrl = isCtrl(d);
+    tr.innerHTML = `<td class="td-char">${ctrl ? '<span style="color:var(--text2);font-size:10px">CTRL</span>' : esc(d.char || '\u00A0')}</td><td class="td-code">${esc(d.unicode)}</td><td class="td-dec">${esc(d.dec)}</td><td class="td-hex">${esc(d.hex)}</td><td class="td-desc">${esc(d.desc)}</td>`;
+    tr.style.cursor = 'pointer';
+    tr.addEventListener('click', () => showDetail(d));
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  container.appendChild(t);
+}
+
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showDetail(d) {
+  document.getElementById('detailChar').textContent = isCtrl(d) ? '[Control]' : (d.char || '');
+  document.getElementById('detailDesc').textContent = d.desc || '-';
+  document.getElementById('detailUnicode').textContent = d.unicode;
+  document.getElementById('detailDec').textContent = d.dec;
+  document.getElementById('detailHex').textContent = d.hex;
+  document.getElementById('detailHtml').textContent = `&#${d.dec};`;
+  document.getElementById('detailCss').textContent = `\\${d.unicode.replace('U+','')}`;
+  document.getElementById('overlay').classList.add('show');
+
+  const btn = document.getElementById('copyBtn');
+  btn.textContent = 'Copy Character';
+  btn.classList.remove('copied');
+  btn.onclick = () => {
+    if (d.char) {
+      navigator.clipboard.writeText(d.char).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+      });
+    }
+  };
+}
+
+function matchChar(d, q) {
+  return d.char.toLowerCase().includes(q) ||
+    d.unicode.toLowerCase().includes(q) ||
+    d.desc.toLowerCase().includes(q) ||
+    d.hex.toLowerCase().includes(q) ||
+    d.dec.includes(q);
+}
+
+function toEntry(r) {
+  const unicode = r[0], hex = r[1], ch = r[2], desc = r[3] || '';
+  return { dec: String(parseInt(unicode.slice(2), 16)), unicode, hex, char: ch, desc };
+}
+
+function doGlobalSearch(query) {
+  const q = query.trim().toLowerCase();
+  if (q.length < 1) {
+    // Show welcome if on welcome page, or clear results
+    const content = document.getElementById('content');
+    if (!document.getElementById('mainHeader').style.display || document.getElementById('mainHeader').style.display === 'none') {
+      content.innerHTML = '';
+      const w = document.createElement('div');
+      w.className = 'welcome';
+      w.innerHTML = '<h3>UTF-16 Character Explorer</h3><p>330 Unicode blocks, 177,584 characters<br>Select a category from the left to browse</p><div class="global-search-box"><div style="display:flex;gap:8px"><input type="text" class="global-search" id="globalSearch" placeholder="Search all characters across all categories..." value="' + esc(query) + '"><button class="search-go-btn" id="globalSearchBtn">Search</button></div><div class="global-hint">Unicode, character, or description (min 1 char) - press Enter or click Search</div></div>';
+      content.appendChild(w);
+      const gs = document.getElementById('globalSearch');
+      const doIt = () => doGlobalSearch(gs.value);
+      document.getElementById('globalSearchBtn').addEventListener('click', doIt);
+      gs.addEventListener('keydown', e => { if (e.key === 'Enter') doIt(); });
+      gs.focus();
+    }
+    return;
+  }
+
+  // Show header for global results
+  document.getElementById('mainHeader').style.display = '';
+  document.getElementById('catTitle').innerHTML = '<span style="color:var(--accent)">Search</span> All Categories';
+  document.getElementById('stats').style.display = '';
+
+  // Search all categories, collect results grouped by category
+  const results = [];
+  let total = 0;
+  for (let i = 0; i < CATEGORIES.length && total < GLOBAL_SEARCH_LIMIT; i++) {
+    const raw = CHAR_DATA[i] || [];
+    const matches = [];
+    for (let j = 0; j < raw.length && total < GLOBAL_SEARCH_LIMIT; j++) {
+      const r = raw[j];
+      const unicode = r[0], hex = r[1], ch = r[2], desc = (r[3] || '').toLowerCase();
+      if (ch.toLowerCase().includes(q) || unicode.toLowerCase().includes(q) || desc.includes(q) || hex.toLowerCase().includes(q)) {
+        matches.push(toEntry(r));
+        total++;
+      }
+    }
+    if (matches.length > 0) {
+      results.push({ catIdx: i, matches });
+    }
+  }
+
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  const limitHit = total >= GLOBAL_SEARCH_LIMIT;
+  document.getElementById('stats').textContent =
+    `${total.toLocaleString()} results in ${results.length} categories` +
+    (limitHit ? ` (limited to ${GLOBAL_SEARCH_LIMIT})` : '');
+
+  if (total === 0) {
+    content.innerHTML = '<div class="welcome"><h3>No results</h3><p>No characters found matching "' + esc(q) + '"</p></div>';
+    return;
+  }
+
+  // Render grouped results
+  results.forEach(({ catIdx, matches }) => {
+    const cat = CATEGORIES[catIdx];
+    const hdr = document.createElement('div');
+    hdr.className = 'result-cat-header';
+    hdr.innerHTML = `${catIdx+1}. ${esc(cat.name)}<span>${esc(cat.desc)} | ${matches.length} matches</span>`;
+    hdr.addEventListener('click', () => loadCategory(catIdx));
+    content.appendChild(hdr);
+
+    if (currentView === 'grid') {
+      const g = document.createElement('div');
+      g.className = 'char-grid';
+      matches.forEach(d => {
+        const c = document.createElement('div');
+        c.className = 'char-cell';
+        const ctrl = isCtrl(d);
+        c.innerHTML = `<div class="char-display${ctrl ? ' control' : ''}">${ctrl ? esc(d.desc || d.unicode) : esc(d.char || '\u00A0')}</div><div class="char-code">${esc(d.unicode)}</div>`;
+        c.addEventListener('click', () => showDetail(d));
+        g.appendChild(c);
+      });
+      content.appendChild(g);
+    } else {
+      const t = document.createElement('table');
+      t.className = 'char-table';
+      t.innerHTML = '<thead><tr><th>Char</th><th>Unicode</th><th>Dec</th><th>UTF-16 Hex</th><th>Description</th></tr></thead>';
+      const tb = document.createElement('tbody');
+      matches.forEach(d => {
+        const tr = document.createElement('tr');
+        const ctrl = isCtrl(d);
+        tr.innerHTML = `<td class="td-char">${ctrl ? '<span style="color:var(--text2);font-size:10px">CTRL</span>' : esc(d.char || '\u00A0')}</td><td class="td-code">${esc(d.unicode)}</td><td class="td-dec">${esc(d.dec)}</td><td class="td-hex">${esc(d.hex)}</td><td class="td-desc">${esc(d.desc)}</td>`;
+        tr.style.cursor = 'pointer';
+        tr.addEventListener('click', () => showDetail(d));
+        tb.appendChild(tr);
+      });
+      t.appendChild(tb);
+      content.appendChild(t);
+    }
+  });
+}
+
+</script>
+</body>
+</html>
