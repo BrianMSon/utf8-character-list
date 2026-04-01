@@ -2,6 +2,8 @@
 
 An interactive browser for all 177,584 Unicode characters across 330 blocks, with UTF-8, UCS-2, and UTF-16 hex encodings.
 
+**Live Demo:** https://brianmson.github.io/utf8-character-list/
+
 ## Screenshots
 
 ![Landing page — browse 330 Unicode blocks](screenshot.png)
