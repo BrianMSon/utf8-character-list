@@ -129,6 +129,31 @@ body {
 }
 .cat-item.hidden { display: none; }
 
+/* Mobile menu button */
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.mobile-menu-btn:hover { border-color: var(--accent); }
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 49;
+}
+.mobile-overlay.show { display: block; }
+
 /* Sidebar toggle */
 .sidebar-toggle {
   position: absolute;
@@ -453,6 +478,7 @@ body {
   color: var(--text2);
   text-align: center;
   padding: 40px;
+  position: relative;
 }
 .welcome h3 { font-size: 24px; margin-bottom: 12px; color: var(--text); }
 .welcome p { font-size: 14px; line-height: 1.6; }
@@ -553,9 +579,49 @@ body {
 }
 @media (max-width: 700px) {
   body { flex-direction: column; }
-  .sidebar { width: 100%; min-width: 100%; height: auto; max-height: 40vh; }
-  .main { height: 60vh; }
-  .char-search { width: 100%; }
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100% !important; min-width: 100% !important;
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  .sidebar.collapsed { transform: translateX(-100%); }
+  .sidebar .sidebar-toggle { display: none; }
+  .main { height: 100vh; width: 100%; }
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+  .main-header {
+    padding: 12px 14px !important;
+    gap: 8px !important;
+  }
+  .main-header h2 { font-size: 15px; min-width: unset !important; }
+  .main-header h2 small { display: block; margin-left: 0; }
+  .char-search { width: 100% !important; order: 10; }
+  .view-toggle { order: 11; }
+  .search-all-btn { order: 12; }
+  .content { padding: 10px 12px 16px !important; }
+  .char-grid { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)) !important; gap: 6px !important; }
+  .char-cell { padding: 8px 4px; border-radius: 8px; }
+  .char-display { font-size: 24px; min-height: 34px; }
+  .char-code { font-size: 9px; }
+  .char-table { font-size: 12px; display: block; overflow-x: auto; }
+  .char-table th, .char-table td { padding: 6px 8px; white-space: nowrap; }
+  .stats { padding: 8px 14px 0; font-size: 11px; }
+  .detail-card { padding: 20px 16px; border-radius: 12px; }
+  .detail-char { font-size: 48px; }
+  .detail-row { font-size: 12px; }
+  .welcome { padding: 20px; }
+  .welcome h3 { font-size: 18px; }
+  .pagination { gap: 4px; }
+  .page-btn { padding: 5px 10px; font-size: 12px; }
+  .page-jump { font-size: 11px; }
 }
 </style>
 </head>
@@ -580,6 +646,7 @@ body {
 
 <div class="main" style="display:none" id="appMain">
   <div class="main-header" id="mainHeader" style="display:none">
+    <button class="mobile-menu-btn" id="mobileMenuBtn" title="Categories">&#9776;</button>
     <h2 id="catTitle"></h2>
     <input type="text" class="char-search" id="charSearch" placeholder="Search in this category...">
     <button class="search-go-btn" id="charSearchBtn" style="padding:8px 16px;font-size:13px;border-radius:8px">Search</button>
@@ -591,7 +658,8 @@ body {
   </div>
   <div class="stats" id="stats" style="display:none"></div>
   <div class="content" id="content">
-    <div class="welcome">
+    <div class="welcome" id="welcomeScreen">
+      <button class="mobile-menu-btn" id="mobileMenuBtnWelcome" title="Categories" style="position:absolute;top:12px;left:12px">&#9776;</button>
       <h3>UCS-2 Character Explorer</h3>
       <p>160 Unicode blocks, 63,472 characters<br>Select a category from the left to browse</p>
       <div class="global-search-box">
@@ -605,6 +673,7 @@ body {
   </div>
 </div>
 
+<div class="mobile-overlay" id="mobileOverlay"></div>
 <div class="overlay" id="overlay">
   <div class="detail-card">
     <button class="close-btn" id="closeDetail">&times;</button>
@@ -678,7 +747,7 @@ function tick() { return new Promise(r => setTimeout(r, 0)); }
 
 function setupEvents(catList) {
 
-  // Sidebar toggle
+  // Sidebar toggle (desktop)
   document.getElementById('sidebarToggle').addEventListener('click', function() {
     const sidebar = document.getElementById('appSidebar');
     sidebar.classList.toggle('collapsed');
@@ -690,6 +759,24 @@ function setupEvents(catList) {
       }
     }
   });
+
+  // Mobile menu toggle
+  function openMobileMenu() {
+    const sidebar = document.getElementById('appSidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    sidebar.classList.add('mobile-open');
+    sidebar.classList.remove('collapsed');
+    overlay.classList.add('show');
+  }
+  function closeMobileMenu() {
+    const sidebar = document.getElementById('appSidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    sidebar.classList.remove('mobile-open');
+    overlay.classList.remove('show');
+  }
+  document.getElementById('mobileMenuBtn').addEventListener('click', openMobileMenu);
+  document.getElementById('mobileMenuBtnWelcome').addEventListener('click', openMobileMenu);
+  document.getElementById('mobileOverlay').addEventListener('click', closeMobileMenu);
 
   // Category search
   document.getElementById('catSearch').addEventListener('input', function() {
@@ -755,6 +842,12 @@ init();
 function loadCategory(idx) {
   const cat = CATEGORIES[idx];
   catList.querySelectorAll('.cat-item').forEach(el => el.classList.toggle('active', +el.dataset.idx === idx));
+
+  // Close mobile menu if open
+  if (window.innerWidth <= 700) {
+    document.getElementById('appSidebar').classList.remove('mobile-open');
+    document.getElementById('mobileOverlay').classList.remove('show');
+  }
 
   document.getElementById('mainHeader').style.display = '';
   document.getElementById('catTitle').innerHTML = `<span style="color:var(--accent)">${idx+1}.</span> ${esc(cat.name)}<small>${esc(cat.desc)}</small>`;
