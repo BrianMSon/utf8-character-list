@@ -691,6 +691,8 @@ body {
 </div>
 
 <script src="chardata_utf16.js"></script>
+<script src="emoji-data.js"></script>
+<script src="emoji.js" data-encoding="utf16"></script>
 <script>
 const PAGE_SIZE = 500;
 const GLOBAL_SEARCH_LIMIT = 1000;
@@ -747,7 +749,7 @@ function tick() { return new Promise(r => setTimeout(r, 0)); }
 
 function setupEvents(catList) {
 
-  // Sidebar toggle (desktop)
+  // Sidebar toggle
   document.getElementById('sidebarToggle').addEventListener('click', function() {
     const sidebar = document.getElementById('appSidebar');
     sidebar.classList.toggle('collapsed');
@@ -794,7 +796,8 @@ function setupEvents(catList) {
       document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
       this.classList.add('active');
       currentView = this.dataset.view;
-      renderData();
+      if (isGlobalSearch) doGlobalSearch(document.getElementById('charSearch').value);
+      else renderData();
     });
   });
 
@@ -804,7 +807,7 @@ function setupEvents(catList) {
     if (isGlobalSearch) {
       doGlobalSearch(q);
     } else {
-      const ql = q.toLowerCase();
+      const ql = q.trim().normalize('NFC').toLowerCase();
       if (!ql) {
         filteredData = currentData;
       } else {
@@ -815,6 +818,9 @@ function setupEvents(catList) {
     }
   }
   document.getElementById('charSearchBtn').addEventListener('click', execCharSearch);
+  document.getElementById('charSearch').addEventListener('input', () => {
+    if (!isGlobalSearch) execCharSearch();
+  });
   document.getElementById('charSearch').addEventListener('keydown', e => { if (e.key === 'Enter') execCharSearch(); });
 
   // Global search on welcome page - triggered by button or Enter
@@ -828,7 +834,7 @@ function setupEvents(catList) {
     this.classList.toggle('active', isGlobalSearch);
     const cs = document.getElementById('charSearch');
     cs.placeholder = isGlobalSearch ? 'Search ALL categories...' : 'Search in this category...';
-    if (cs.value) cs.dispatchEvent(new Event('input'));
+    if (cs.value) execCharSearch();
   });
 
   // Detail popup close
@@ -841,13 +847,16 @@ init();
 
 function loadCategory(idx) {
   const cat = CATEGORIES[idx];
-  catList.querySelectorAll('.cat-item').forEach(el => el.classList.toggle('active', +el.dataset.idx === idx));
-
+  document.getElementById('catList').querySelectorAll('.cat-item').forEach(el => el.classList.toggle('active', +el.dataset.idx === idx));
   // Close mobile menu if open
   if (window.innerWidth <= 700) {
     document.getElementById('appSidebar').classList.remove('mobile-open');
     document.getElementById('mobileOverlay').classList.remove('show');
   }
+
+  isGlobalSearch = false;
+  document.getElementById('searchAllBtn').classList.remove('active');
+  document.getElementById('charSearch').placeholder = idx === 0 ? '텍스트로 찾기: 하트, 웃음, 고양이, heart…' : 'Search in this category...';
 
   document.getElementById('mainHeader').style.display = '';
   document.getElementById('catTitle').innerHTML = `<span style="color:var(--accent)">${idx+1}.</span> ${esc(cat.name)}<small>${esc(cat.desc)}</small>`;
@@ -855,10 +864,7 @@ function loadCategory(idx) {
   document.getElementById('stats').style.display = '';
 
   const raw = CHAR_DATA[idx] || [];
-  currentData = raw.map(r => {
-    const unicode = r[0], hex = r[1], ch = r[2], desc = r[3] || '';
-    return { dec: String(parseInt(unicode.slice(2), 16)), unicode, hex, char: ch, desc };
-  });
+  currentData = raw.map(toEntry);
   filteredData = currentData;
   currentPage = 0;
   renderData();
@@ -877,6 +883,11 @@ function renderData() {
 
   const content = document.getElementById('content');
   content.innerHTML = '';
+
+  if (!filteredData.length) {
+    content.innerHTML = '<div class="welcome"><h3>검색 결과가 없습니다</h3><p>다른 이름이나 키워드로 검색해 보세요.</p></div>';
+    return;
+  }
 
   if (totalPages > 1) content.appendChild(buildPagination(totalPages, content));
   if (currentView === 'grid') renderGrid(content, pageData);
@@ -949,6 +960,7 @@ function renderGrid(container, data) {
   data.forEach(d => {
     const c = document.createElement('div');
     c.className = 'char-cell';
+    c.title = d.desc;
     const ctrl = isCtrl(d);
     c.innerHTML = `<div class="char-display${ctrl ? ' control' : ''}">${ctrl ? esc(d.desc || d.unicode) : esc(d.char || '\u00A0')}</div><div class="char-code">${esc(d.unicode)}</div>`;
     c.addEventListener('click', () => showDetail(d));
@@ -981,12 +993,12 @@ function esc(s) {
 
 function showDetail(d) {
   document.getElementById('detailChar').textContent = isCtrl(d) ? '[Control]' : (d.char || '');
-  document.getElementById('detailDesc').textContent = d.desc || '-';
+  document.getElementById('detailDesc').textContent = [d.desc, d.keywords].filter(Boolean).join(' · ') || '-';
   document.getElementById('detailUnicode').textContent = d.unicode;
   document.getElementById('detailDec').textContent = d.dec;
   document.getElementById('detailHex').textContent = d.hex;
-  document.getElementById('detailHtml').textContent = `&#${d.dec};`;
-  document.getElementById('detailCss').textContent = `\\${d.unicode.replace('U+','')}`;
+  document.getElementById('detailHtml').textContent = d.dec.split(' ').map(cp => `&#${cp};`).join('');
+  document.getElementById('detailCss').textContent = d.unicode.split(' ').map(cp => '\\' + cp.slice(2)).join(' ');
   document.getElementById('overlay').classList.add('show');
 
   const btn = document.getElementById('copyBtn');
@@ -1003,39 +1015,26 @@ function showDetail(d) {
 }
 
 function matchChar(d, q) {
-  return d.char.toLowerCase().includes(q) ||
-    d.unicode.toLowerCase().includes(q) ||
-    d.desc.toLowerCase().includes(q) ||
-    d.hex.toLowerCase().includes(q) ||
-    d.dec.includes(q);
+  const text = [d.char, d.unicode, d.desc, d.keywords || '', d.hex, d.dec].join(' ').normalize('NFC').toLowerCase();
+  return q.trim().normalize('NFC').toLowerCase().split(/\s+/).every(word => text.includes(word));
 }
 
 function toEntry(r) {
   const unicode = r[0], hex = r[1], ch = r[2], desc = r[3] || '';
-  return { dec: String(parseInt(unicode.slice(2), 16)), unicode, hex, char: ch, desc };
+  return { dec: unicode.split(' ').map(cp => parseInt(cp.slice(2), 16)).join(' '), unicode, hex, char: ch, desc, keywords: r[4] || '' };
 }
 
 function doGlobalSearch(query) {
   const q = query.trim().toLowerCase();
   if (q.length < 1) {
-    // Show welcome if on welcome page, or clear results
-    const content = document.getElementById('content');
-    if (!document.getElementById('mainHeader').style.display || document.getElementById('mainHeader').style.display === 'none') {
-      content.innerHTML = '';
-      const w = document.createElement('div');
-      w.className = 'welcome';
-      w.innerHTML = '<h3>UTF-16 Character Explorer</h3><p>330 Unicode blocks, 177,584 characters<br>Select a category from the left to browse</p><div class="global-search-box"><div style="display:flex;gap:8px"><input type="text" class="global-search" id="globalSearch" placeholder="Search all characters across all categories..." value="' + esc(query) + '"><button class="search-go-btn" id="globalSearchBtn">Search</button></div><div class="global-hint">Unicode, character, or description (min 1 char) - press Enter or click Search</div></div>';
-      content.appendChild(w);
-      const gs = document.getElementById('globalSearch');
-      const doIt = () => doGlobalSearch(gs.value);
-      document.getElementById('globalSearchBtn').addEventListener('click', doIt);
-      gs.addEventListener('keydown', e => { if (e.key === 'Enter') doIt(); });
-      gs.focus();
-    }
+    loadCategory(0);
     return;
   }
 
   // Show header for global results
+  isGlobalSearch = true;
+  document.getElementById('searchAllBtn').classList.add('active');
+  document.getElementById('charSearch').value = query;
   document.getElementById('mainHeader').style.display = '';
   document.getElementById('catTitle').innerHTML = '<span style="color:var(--accent)">Search</span> All Categories';
   document.getElementById('stats').style.display = '';
@@ -1049,7 +1048,7 @@ function doGlobalSearch(query) {
     for (let j = 0; j < raw.length && total < GLOBAL_SEARCH_LIMIT; j++) {
       const r = raw[j];
       const unicode = r[0], hex = r[1], ch = r[2], desc = (r[3] || '').toLowerCase();
-      if (ch.toLowerCase().includes(q) || unicode.toLowerCase().includes(q) || desc.includes(q) || hex.toLowerCase().includes(q)) {
+      if (matchChar(toEntry(r), q)) {
         matches.push(toEntry(r));
         total++;
       }
