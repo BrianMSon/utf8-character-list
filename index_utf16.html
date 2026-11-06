@@ -177,6 +177,7 @@ body {
 }
 .sidebar-toggle:hover { color: var(--accent); background: var(--surface3); }
 .sidebar.collapsed { width: 0; min-width: 0; overflow: visible; border-right: none; }
+.sidebar.collapsed .emoji-credit,
 .sidebar.collapsed .sidebar-header,
 .sidebar.collapsed .category-list { visibility: hidden; width: 0; height: 0; overflow: hidden; }
 .sidebar.collapsed .sidebar-toggle { right: -17px; }
@@ -288,6 +289,17 @@ body {
   align-items: center;
   justify-content: center;
 }
+.emoji-image {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  object-fit: contain;
+}
+.char-display, .td-char, .detail-char {
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+}
+.emoji-credit { padding: 8px 14px; font-size: 11px; color: var(--text2); }
+.emoji-credit a { color: var(--text2); }
 .char-display.control {
   font-size: 10px;
   color: var(--text2);
@@ -642,6 +654,7 @@ body {
     <input type="text" class="sidebar-search" id="catSearch" placeholder="Search categories...">
   </div>
   <div class="category-list" id="catList"></div>
+  <div class="emoji-credit">Emoji artwork: <a href="https://github.com/jdecked/twemoji">Twemoji</a> &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div>
 </div>
 
 <div class="main" style="display:none" id="appMain">
@@ -692,6 +705,7 @@ body {
 
 <script src="chardata_utf16.js"></script>
 <script src="emoji-data.js"></script>
+<script src="emoji-images.js"></script>
 <script src="emoji.js" data-encoding="utf16"></script>
 <script>
 const PAGE_SIZE = 500;
@@ -856,7 +870,7 @@ function loadCategory(idx) {
 
   isGlobalSearch = false;
   document.getElementById('searchAllBtn').classList.remove('active');
-  document.getElementById('charSearch').placeholder = idx === 0 ? '텍스트로 찾기: 하트, 웃음, 고양이, heart…' : 'Search in this category...';
+  document.getElementById('charSearch').placeholder = idx === emojiCategoryIndex ? '텍스트로 찾기: 하트, 웃음, 고양이, heart…' : 'Search in this category...';
 
   document.getElementById('mainHeader').style.display = '';
   document.getElementById('catTitle').innerHTML = `<span style="color:var(--accent)">${idx+1}.</span> ${esc(cat.name)}<small>${esc(cat.desc)}</small>`;
@@ -962,7 +976,7 @@ function renderGrid(container, data) {
     c.className = 'char-cell';
     c.title = d.desc;
     const ctrl = isCtrl(d);
-    c.innerHTML = `<div class="char-display${ctrl ? ' control' : ''}">${ctrl ? esc(d.desc || d.unicode) : esc(d.char || '\u00A0')}</div><div class="char-code">${esc(d.unicode)}</div>`;
+    c.innerHTML = `<div class="char-display${ctrl ? ' control' : ''}">${ctrl ? esc(d.desc || d.unicode) : displayCharacter(d)}</div><div class="char-code">${esc(d.unicode)}</div>`;
     c.addEventListener('click', () => showDetail(d));
     g.appendChild(c);
   });
@@ -977,7 +991,7 @@ function renderTable(container, data) {
   data.forEach(d => {
     const tr = document.createElement('tr');
     const ctrl = isCtrl(d);
-    tr.innerHTML = `<td class="td-char">${ctrl ? '<span style="color:var(--text2);font-size:10px">CTRL</span>' : esc(d.char || '\u00A0')}</td><td class="td-code">${esc(d.unicode)}</td><td class="td-dec">${esc(d.dec)}</td><td class="td-hex">${esc(d.hex)}</td><td class="td-desc">${esc(d.desc)}</td>`;
+    tr.innerHTML = `<td class="td-char">${ctrl ? '<span style="color:var(--text2);font-size:10px">CTRL</span>' : displayCharacter(d)}</td><td class="td-code">${esc(d.unicode)}</td><td class="td-dec">${esc(d.dec)}</td><td class="td-hex">${esc(d.hex)}</td><td class="td-desc">${esc(d.desc)}</td>`;
     tr.style.cursor = 'pointer';
     tr.addEventListener('click', () => showDetail(d));
     tb.appendChild(tr);
@@ -991,8 +1005,14 @@ function esc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function displayCharacter(d) {
+  const asset = EMOJI_IMAGES[d.char];
+  if (!asset) return esc(d.char || '\u00A0');
+  return `<img class="emoji-image" src="assets/emoji/${asset}.svg" alt="${esc(d.char)}" title="${esc(d.desc || d.char)}" loading="lazy" decoding="async" draggable="false">`;
+}
+
 function showDetail(d) {
-  document.getElementById('detailChar').textContent = isCtrl(d) ? '[Control]' : (d.char || '');
+  document.getElementById('detailChar').innerHTML = isCtrl(d) ? '[Control]' : displayCharacter(d);
   document.getElementById('detailDesc').textContent = [d.desc, d.keywords].filter(Boolean).join(' · ') || '-';
   document.getElementById('detailUnicode').textContent = d.unicode;
   document.getElementById('detailDec').textContent = d.dec;
@@ -1027,7 +1047,7 @@ function toEntry(r) {
 function doGlobalSearch(query) {
   const q = query.trim().toLowerCase();
   if (q.length < 1) {
-    loadCategory(0);
+    loadCategory(emojiCategoryIndex);
     return;
   }
 
@@ -1087,7 +1107,7 @@ function doGlobalSearch(query) {
         const c = document.createElement('div');
         c.className = 'char-cell';
         const ctrl = isCtrl(d);
-        c.innerHTML = `<div class="char-display${ctrl ? ' control' : ''}">${ctrl ? esc(d.desc || d.unicode) : esc(d.char || '\u00A0')}</div><div class="char-code">${esc(d.unicode)}</div>`;
+        c.innerHTML = `<div class="char-display${ctrl ? ' control' : ''}">${ctrl ? esc(d.desc || d.unicode) : displayCharacter(d)}</div><div class="char-code">${esc(d.unicode)}</div>`;
         c.addEventListener('click', () => showDetail(d));
         g.appendChild(c);
       });
@@ -1100,7 +1120,7 @@ function doGlobalSearch(query) {
       matches.forEach(d => {
         const tr = document.createElement('tr');
         const ctrl = isCtrl(d);
-        tr.innerHTML = `<td class="td-char">${ctrl ? '<span style="color:var(--text2);font-size:10px">CTRL</span>' : esc(d.char || '\u00A0')}</td><td class="td-code">${esc(d.unicode)}</td><td class="td-dec">${esc(d.dec)}</td><td class="td-hex">${esc(d.hex)}</td><td class="td-desc">${esc(d.desc)}</td>`;
+        tr.innerHTML = `<td class="td-char">${ctrl ? '<span style="color:var(--text2);font-size:10px">CTRL</span>' : displayCharacter(d)}</td><td class="td-code">${esc(d.unicode)}</td><td class="td-dec">${esc(d.dec)}</td><td class="td-hex">${esc(d.hex)}</td><td class="td-desc">${esc(d.desc)}</td>`;
         tr.style.cursor = 'pointer';
         tr.addEventListener('click', () => showDetail(d));
         tb.appendChild(tr);

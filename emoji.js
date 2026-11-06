@@ -15,6 +15,14 @@ function emojiRow(row, encoding) {
 }
 
 const emojiEncoding = document.currentScript.dataset.encoding;
-for (let i = CATEGORIES.length - 1; i >= 0; i--) CHAR_DATA[i + 1] = CHAR_DATA[i];
-CATEGORIES.unshift({name: 'Emoticon / Emoji', desc: '전체 이모티콘 · 한국어/영어 텍스트 검색', range: 'Unicode Emoji 17.0 · 3,953 emoji'});
-CHAR_DATA[0] = EMOJI_DATA.map(row => emojiRow(row, emojiEncoding));
+let emojiCategoryIndex = CATEGORIES.findIndex(category => category.name === 'Emoticons');
+// UCS-2 omits supplementary Unicode blocks; retain its complete emoji browser.
+if (emojiCategoryIndex === -1) {
+  emojiCategoryIndex = CATEGORIES.length;
+  CATEGORIES.push({name: 'Emoticons'});
+}
+Object.assign(CATEGORIES[emojiCategoryIndex], {
+  desc: '전체 이모티콘 · 한국어/영어 텍스트 검색',
+  range: 'Unicode Emoji 17.0 · 3,953 emoji',
+});
+CHAR_DATA[emojiCategoryIndex] = EMOJI_DATA.map(row => emojiRow(row, emojiEncoding));
