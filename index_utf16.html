@@ -177,7 +177,6 @@ body {
 }
 .sidebar-toggle:hover { color: var(--accent); background: var(--surface3); }
 .sidebar.collapsed { width: 0; min-width: 0; overflow: visible; border-right: none; }
-.sidebar.collapsed .emoji-credit,
 .sidebar.collapsed .sidebar-header,
 .sidebar.collapsed .category-list { visibility: hidden; width: 0; height: 0; overflow: hidden; }
 .sidebar.collapsed .sidebar-toggle { right: -17px; }
@@ -289,17 +288,9 @@ body {
   align-items: center;
   justify-content: center;
 }
-.emoji-image {
-  width: 1em;
-  height: 1em;
-  vertical-align: -0.15em;
-  object-fit: contain;
-}
 .char-display, .td-char, .detail-char {
   font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
 }
-.emoji-credit { padding: 8px 14px; font-size: 11px; color: var(--text2); }
-.emoji-credit a { color: var(--text2); }
 .char-display.control {
   font-size: 10px;
   color: var(--text2);
@@ -654,7 +645,6 @@ body {
     <input type="text" class="sidebar-search" id="catSearch" placeholder="Search categories...">
   </div>
   <div class="category-list" id="catList"></div>
-  <div class="emoji-credit">Emoji artwork: <a href="https://github.com/jdecked/twemoji">Twemoji</a> &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div>
 </div>
 
 <div class="main" style="display:none" id="appMain">
@@ -705,7 +695,6 @@ body {
 
 <script src="chardata_utf16.js"></script>
 <script src="emoji-data.js"></script>
-<script src="emoji-images.js"></script>
 <script src="emoji.js" data-encoding="utf16"></script>
 <script>
 const PAGE_SIZE = 500;
@@ -722,6 +711,7 @@ function setProgress(pct, msg) {
 }
 
 async function init() {
+  await filterUnsupportedEmoji(setProgress);
   setProgress(50, 'Building category list...');
   await tick();
 
@@ -1006,9 +996,7 @@ function esc(s) {
 }
 
 function displayCharacter(d) {
-  const asset = EMOJI_IMAGES[d.char];
-  if (!asset) return esc(d.char || '\u00A0');
-  return `<img class="emoji-image" src="assets/emoji/${asset}.svg" alt="${esc(d.char)}" title="${esc(d.desc || d.char)}" loading="lazy" decoding="async" draggable="false">`;
+  return esc(d.char || '\u00A0');
 }
 
 function showDetail(d) {
